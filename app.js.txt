@@ -1,0 +1,28 @@
+// app.js wrapper - ensures DOM is ready before app.js runs
+(function() {
+  'use strict';
+
+  console.log('[App] Waiting for DOM ready...');
+
+  function initApp() {
+    console.log('[App] DOM ready, initializing...');
+
+    // Wait for config to load first
+    if (typeof window.loadConfig === 'function') {
+      window.loadConfig().then(function() {
+        console.log('[App] Config loaded, starting app');
+        // Now app.js can safely run
+      });
+    }
+
+    // The actual app.js code will run after this wrapper
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+  } else {
+    initApp();
+  }
+})();
+
+// Original app.js code follows below

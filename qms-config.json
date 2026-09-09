@@ -1,0 +1,14 @@
+{
+  "supabase": {
+    "url": "https://dilyshvzxpaplqnrievh.supabase.co",
+    "anonKey": "sb_publishable_9zdzXXnJP5Z5eGD70jvJ8g_Kwxp-k50"
+  },
+  "gemini": {
+    "apiKey": "",
+    "model": "gemini-2.0-flash-exp"
+  },
+  "app": {
+    "version": "26.0",
+    "name": "UNIMY QMS RISE"
+  }
+}
