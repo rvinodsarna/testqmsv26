@@ -754,6 +754,22 @@ function dhTimeAgo(e){if(!e)return"—";const t=Date.now()-new Date(e).getTime()
 // Find this function in app.js and replace it entirely with this:
 
 async function mountDeanHome(e) {
+
+  async function mountDeanHome(e) {
+    // ADD THIS CHECK:
+    if (!e) {
+        e = document.getElementById('main-content');
+    }
+    if (!e) {
+        console.error('[Dean Dashboard] main-content element not found!');
+        return;
+    }
+    
+    const t = QMS.state.user;
+    if (t.role !== 'dean') return;
+    
+    // ... rest of the function
+}
     const t = QMS.state.user;
     if (t.role !== 'dean') return;
     
