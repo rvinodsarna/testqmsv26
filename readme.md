@@ -5,8 +5,6 @@ message: Add comprehensive README.md for QMS-RISE project
 content: |
   # QMS-RISE
 
-  **Quality Management System – RISE** is a web-based academic quality management dashboard built for tracking, visualising, and managing institutional quality metrics (e.g. CLO, CQI, QS indicators) with a focus on Malaysian higher-education contexts.
-
   This repository contains the front-end application, data import scripts, seed SQL, and deployment configuration for Netlify + Supabase.
 
   ---
