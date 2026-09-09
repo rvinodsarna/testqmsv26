@@ -1735,7 +1735,7 @@ async function mountEvents() {
         <button class="btn btn-sm ${tab === "past" ? "btn-accent" : "btn-outline"}" onclick="qeSetTab('past')">Past</button>
     </div>`;
 
-     container.innerHTML = `<div class="page-anim">
+    container.innerHTML = `<div class="page-anim">
         <div class="page-header">
             <div class="page-eyebrow">CAMPUS LIFE</div>
             <div class="page-title">🎫 Events</div>
