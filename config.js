@@ -12,7 +12,7 @@ var QMS_CONFIG = {
         model: 'gemini-2.0-flash-exp'
     },
     app: {
-        version: '20.0',
+        version: '26.0',
         name: 'UNIMY QMS RISE'
     }
 };
