@@ -4,8 +4,7 @@
     "anonKey": "sb_publishable_9zdzXXnJP5Z5eGD70jvJ8g_Kwxp-k50"
   },
   "gemini": {
-    "apiKey": "",
-    "model": "gemini-2.0-flash-exp"
+    "model": "gemini-2.5-flash"
   },
   "app": {
     "version": "26.0",
