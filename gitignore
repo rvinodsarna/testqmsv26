@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+*.xlsx
+*.xls
+secrets/
+private/
+exports/
+__pycache__/
+*.pyc
+node_modules/
