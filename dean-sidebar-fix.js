@@ -1,63 +1,79 @@
-// dean-sidebar-fix.js - FIXED VERSION
-(function() {
-  'use strict';
-  console.log('[Dean Sidebar Fix] Script loading...');
+// dean-sidebar-fix.js — v26.0
+// Ensures the "Dean Analytics" item exists in the sidebar, even if app.js
+// didn't add it (e.g. non-dean roles, or a custom sidebar build).
 
-  function init() {
-    const checkInterval = setInterval(function() {
-      if (typeof window.QMS !== 'undefined' && window.QMS.state) {
-        clearInterval(checkInterval);
-        addDeanSidebarItem();
-      }
-    }, 100);
+(function () {
+  "use strict";
 
-    setTimeout(() => {
-      clearInterval(checkInterval);
-      console.warn('[Dean Sidebar Fix] QMS not found after 5s');
-    }, 5000);
-  }
+  console.log("[Dean Sidebar] Loading…");
 
-  function addDeanSidebarItem() {
-    console.log('[Dean Sidebar Fix] Adding menu item...');
+  function addItem() {
+    const sidebar =
+      document.querySelector(".sidebar .sidebar-inner") ||
+      document.querySelector(".sidebar-inner") ||
+      document.querySelector(".sidebar");
 
-    if (typeof window.NAV_TITLES !== 'undefined') {
-      window.NAV_TITLES['dean-dashboard'] = '📊 Dean Analytics';
-      console.log('[Dean Sidebar Fix] Added to NAV_TITLES');
+    if (!sidebar) {
+      console.warn("[Dean Sidebar] Sidebar not found");
+      return;
     }
 
-    const sidebar = document.querySelector('.sidebar-nav') || document.querySelector('.sidebar');
-    if (sidebar) {
-      const existingItem = sidebar.querySelector('[data-section="dean-dashboard"]');
-      if (!existingItem) {
-        const deanItem = document.createElement('div');
-        deanItem.className = 'sidebar-item';
-        deanItem.dataset.section = 'dean-dashboard';
-        deanItem.innerHTML = '<span class="sidebar-icon">📊</span><span class="sidebar-label">Dean Analytics</span>';
-        deanItem.addEventListener('click', function() {
-          console.log('[Dean Sidebar] Clicked');
-          if (typeof window.navigate === 'function') {
-            window.navigate('dean-dashboard');
-          } else if (typeof window.mountDeanDashboard === 'function') {
-            window.mountDeanDashboard();
-          }
-        });
-        sidebar.appendChild(deanItem);
-        console.log('[Dean Sidebar Fix] Menu item added');
-      } else {
-        console.log('[Dean Sidebar Fix] Already exists');
-      }
+    // Already present → nothing to do.
+    if (sidebar.querySelector('[data-section="dean-dashboard"]')) {
+      console.log("[Dean Sidebar] Item already present");
+      return;
+    }
+
+    // Find the section that holds the nav items so we insert in the right place.
+    const section = sidebar.querySelector(".sidebar-section") || sidebar;
+
+    // Match app.js's markup exactly so styling is consistent.
+    // app.js buildSidebar() outputs:
+    //   <div class="sidebar-item" data-section="X" onclick="...">
+    //     <span class="si-icon">ICON</span><span>LABEL</span>
+    //   </div>
+    const item = document.createElement("div");
+    item.className = "sidebar-item";
+    item.dataset.section = "dean-dashboard";
+    item.setAttribute(
+      "onclick",
+      "closeSidebar();" +
+      "(typeof navigate==='function'?navigate('dean-dashboard'):" +
+      "(typeof mountDeanDashboard==='function'&&mountDeanDashboard()));"
+    );
+    item.innerHTML =
+      '<span class="si-icon">📈</span><span>Dean Analytics</span>';
+
+    // Insert before the "Logout" section if one exists; otherwise append.
+    const logout = section.querySelector('[onclick*="logout"]');
+    if (logout && logout.parentElement) {
+      logout.parentElement.insertBefore(item, logout);
     } else {
-      console.warn('[Dean Sidebar Fix] Sidebar not found');
+      section.appendChild(item);
     }
 
-    console.log('[Dean Sidebar Fix] Complete');
+    console.log("[Dean Sidebar] Item added");
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+  // Wait until the sidebar actually exists AND the user is signed in.
+  function wait() {
+    const start = Date.now();
+    const t = setInterval(() => {
+      const ready = window.QMS && window.QMS.state && window.QMS.state.user;
+      const sidebar = document.querySelector(".sidebar");
+      if (ready && sidebar) {
+        clearInterval(t);
+        addItem();
+      } else if (Date.now() - start > 8000) {
+        clearInterval(t);
+        console.warn("[Dean Sidebar] Timed out waiting for sidebar");
+      }
+    }, 150);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", wait);
   } else {
-    init();
+    wait();
   }
-
-  console.log('[Dean Sidebar Fix] Loaded successfully');
 })();
