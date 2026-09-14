@@ -9,38 +9,40 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <style>
-        /* Minimal fallback styles — safe to keep even if styles.css defines these */
-        #splash-screen { position:fixed; inset:0; background:#05080f; z-index:9999;
-            display:flex; align-items:center; justify-content:center; overflow:hidden; }
-        #splash-screen.fade-out { opacity:0; transition:opacity 1.4s; pointer-events:none; }
-        #splash-bg { position:absolute; inset:0; pointer-events:none; }
-        #splash-bg .star { position:absolute; background:#fff; border-radius:50%;
-            animation:twinkle var(--dur,3s) infinite; }
-        @keyframes twinkle { 0%,100%{opacity:.2;} 50%{opacity:.9;} }
-        #splash-video { position:absolute; inset:0; width:100%; height:100%;
-            object-fit:cover; opacity:.3; }
-        #splash-content { position:relative; z-index:2; text-align:center; }
-        #splash-progress { width:280px; height:6px; background:rgba(255,255,255,.1);
-            border-radius:3px; margin:16px auto; overflow:hidden; }
-        #splash-progress-bar { height:100%; width:0;
-            background:linear-gradient(90deg,#00f5ff,#7c3aed); }
-        #splash-skip-btn { background:transparent; border:1px solid rgba(255,255,255,.2);
-            color:#fff; padding:8px 20px; border-radius:6px; cursor:pointer; }
-        #splash-unmute-btn { position:absolute; bottom:24px; right:24px; z-index:3; }
-        #credits-screen { position:fixed; inset:0; background:#05080f; color:#fff;
-            display:none; align-items:center; justify-content:center; z-index:9998; }
-        #credits-screen.visible { display:flex !important; }
-        #credits-screen.fade-out { opacity:0; transition:opacity .9s; pointer-events:none; }
-        #credits-continue-btn { background:#00f5ff; color:#000; border:0;
-            padding:10px 24px; border-radius:6px; cursor:pointer; margin-top:16px; }
-        #neural-canvas { position:fixed; inset:0; z-index:-1; pointer-events:none; }
-        #ai-fab-root { position:fixed; z-index:100; }
-        #app { opacity:0; transition:opacity .8s; }
+        #splash-screen{position:fixed;inset:0;background:#05080f;z-index:9999;
+            display:flex;align-items:center;justify-content:center;overflow:hidden;}
+        #splash-screen.fade-out{opacity:0;transition:opacity 1.4s;pointer-events:none;}
+        #splash-bg{position:absolute;inset:0;pointer-events:none;}
+        #splash-bg .star{position:absolute;background:#fff;border-radius:50%;
+            animation:twinkle var(--dur,3s) infinite;}
+        @keyframes twinkle{0%,100%{opacity:.2;}50%{opacity:.9;}}
+        #splash-video{position:absolute;inset:0;width:100%;height:100%;
+            object-fit:cover;opacity:.3;}
+        #splash-content{position:relative;z-index:2;text-align:center;color:#fff;
+            font-family:system-ui,sans-serif;}
+        #splash-progress{width:280px;height:6px;background:rgba(255,255,255,.1);
+            border-radius:3px;margin:16px auto;overflow:hidden;}
+        #splash-progress-bar{height:100%;width:0;
+            background:linear-gradient(90deg,#00f5ff,#7c3aed);transition:width .15s linear;}
+        #splash-skip-btn{background:transparent;border:1px solid rgba(255,255,255,.25);
+            color:#fff;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:14px;}
+        #splash-unmute-btn{position:absolute;bottom:24px;right:24px;z-index:3;
+            background:rgba(0,0,0,.6);color:#fff;border:1px solid #444;
+            padding:8px 16px;border-radius:6px;cursor:pointer;}
+        #credits-screen{position:fixed;inset:0;background:#05080f;color:#fff;
+            display:none;align-items:center;justify-content:center;z-index:9998;}
+        #credits-screen.visible{display:flex !important;}
+        #credits-screen.fade-out{opacity:0;transition:opacity .9s;pointer-events:none;}
+        #credits-continue-btn{background:#00f5ff;color:#000;border:0;
+            padding:10px 24px;border-radius:6px;cursor:pointer;margin-top:16px;font-weight:700;}
+        #neural-canvas{position:fixed;inset:0;z-index:-1;pointer-events:none;}
+        #ai-fab-root{position:fixed;z-index:100;}
+        #app{opacity:0;transition:opacity .8s;}
     </style>
 </head>
 <body>
 
-    <!-- ═══ Splash screen (required by app.js) ═══ -->
+    <!-- Splash (app.js requires all of these) -->
     <div id="splash-screen">
         <canvas id="neural-canvas"></canvas>
         <div id="splash-bg"></div>
@@ -48,34 +50,32 @@
                src="./rise-qms-logo2.mp4"></video>
         <button id="splash-unmute-btn" style="display:none;">🔊 Unmute</button>
         <div id="splash-content">
-            <img src="./rise-qms.png" alt="QMS RISE" style="max-width:180px;" />
+            <img src="./rise-qms.png" alt="QMS RISE" style="max-width:180px;">
+            <h1 style="font-size:24px;margin:12px 0 4px;">UNIMY QMS RISE</h1>
+            <p style="opacity:.7;margin:0 0 8px;">v26.0</p>
             <div id="splash-progress"><div id="splash-progress-bar"></div></div>
             <button id="splash-skip-btn">Skip →</button>
         </div>
     </div>
 
-    <!-- ═══ Credits screen (required by app.js) ═══ -->
+    <!-- Credits (app.js requires) -->
     <div id="credits-screen">
-        <div class="credits-card" style="text-align:center;">
+        <div style="text-align:center;">
             <h2>Created by</h2>
-            <p style="font-size:20px;">R. Vinod Sarna</p>
+            <p style="font-size:20px;margin:8px 0;">R. Vinod Sarna</p>
             <img src="./created-by-vinod-sarna.jpg" alt="Creator"
-                 style="max-width:160px;border-radius:50%;margin:16px auto;display:block;" />
+                 style="max-width:160px;border-radius:50%;margin:16px auto;display:block;">
             <button id="credits-continue-btn">Continue →</button>
         </div>
     </div>
 
-    <!-- ═══ App shell (app.js renders into this) ═══ -->
+    <!-- App shell + global containers -->
     <div id="app"></div>
-
-    <!-- ═══ AI FAB mount point (used by app.js renderAIFab) ═══ -->
     <div id="ai-fab-root"></div>
-
-    <!-- ═══ Global utility containers ═══ -->
     <div id="toast-container"></div>
     <div id="modal-root"></div>
 
-    <!-- ═══ Scripts (order matters) ═══ -->
+    <!-- Scripts — order matters -->
     <script src="./config.js"></script>
     <script src="./app.js"></script>
     <script src="./dean-dashboard-fix.js"></script>
