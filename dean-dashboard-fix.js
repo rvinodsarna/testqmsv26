@@ -1,113 +1,51 @@
-// dean-dashboard-fix.js - v26.0 FIXED VERSION
-// Displays deepseek_html_20260903_2bc3d2.html in the main frame
+// dean-dashboard-fix.js — v26.0
+// Renders the Dean Analytics page inside the main content frame.
+// app.js already routes "dean-dashboard" to mountDeanDashboard(),
+// so we just override that function with our iframe version.
 
-(function() {
-  'use strict';
+(function () {
+  "use strict";
 
-  console.log('[Dean Dashboard v26.0] Script loading...');
+  // Change this to whichever page you want the Dean Analytics tab to load.
+  //   "./qms.html"                              → Dean Command Center
+  //   "./deepseek_html_20260903_2bc3d2.html"    → Deepseek dashboard
+  const DEAN_PAGE_URL = "./qms.html";
 
-  // Wait for DOM and QMS to be ready
-  function init() {
-    if (typeof window.mountDeanDashboard === 'function') {
-      console.log('[Dean Dashboard v26.0] Already defined, skipping');
+  console.log("[Dean Dashboard v26.0] Loading…");
+
+  function mount() {
+    const main = document.getElementById("main-content");
+    if (!main) {
+      console.error("[Dean Dashboard] #main-content not found");
       return;
     }
 
-    // Define the mount function
-    window.mountDeanDashboard = function() {
-      const main = document.getElementById('main-content');
-      if (!main) {
-        console.error('[Dean Dashboard v26.0] main-content not found');
-        return;
-      }
+    console.log("[Dean Dashboard] Rendering iframe →", DEAN_PAGE_URL);
 
-      console.log('[Dean Dashboard v26.0] Loading deepseek HTML...');
+    main.innerHTML = `
+      <div class="dean-dashboard-container"
+           style="width:100%;min-height:calc(100vh - 120px);background:#05080f;">
+        <iframe
+          id="dean-dashboard-iframe"
+          src="${DEAN_PAGE_URL}"
+          title="Dean Analytics Dashboard"
+          style="width:100%;height:calc(100vh - 120px);border:none;display:block;"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups"
+        ></iframe>
+      </div>
+    `;
 
-      // Load deepseek_html_20260903_2bc3d2.html in iframe
-      main.innerHTML = `
-        <div class="dean-dashboard-container" style="width:100%;height:100%;min-height:calc(100vh - 120px);background:#fff;">
-          <iframe 
-            id="dean-dashboard-iframe"
-            src="./deepseek_html_20260903_2bc3d2.html" 
-            style="width:100%;height:100%;border:none;display:block;"
-            title="Dean Analytics Dashboard"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-modals"
-          ></iframe>
-        </div>
-      `;
-
-      // Monitor iframe load
-      const iframe = document.getElementById('dean-dashboard-iframe');
-      if (iframe) {
-        iframe.addEventListener('load', function() {
-          console.log('[Dean Dashboard v26.0] Deepseek HTML loaded successfully');
-        });
-
-        iframe.addEventListener('error', function() {
-          console.error('[Dean Dashboard v26.0] Iframe failed to load');
-        });
-      }
-    };
-
-    console.log('[Dean Dashboard v26.0] mountDeanDashboard function defined');
-  }
-
-  // Initialize when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-
-  console.log('[Dean Dashboard v26.0] Loaded successfully');
-})();
- 
-// dean-dashboard-fix.js - FIXED VERSION
-(function() {
-  'use strict';
-  console.log('[Dean Dashboard Fix] Script loading...');
-
-  function init() {
-    if (typeof window.mountDeanDashboard === 'function') {
-      console.log('[Dean Dashboard Fix] Already defined, skipping');
-      return;
+    const iframe = document.getElementById("dean-dashboard-iframe");
+    if (iframe) {
+      iframe.addEventListener("load", () => console.log("[Dean Dashboard] iframe loaded"));
+      iframe.addEventListener("error", () => console.error("[Dean Dashboard] iframe failed"));
     }
-
-    window.mountDeanDashboard = function() {
-      const main = document.getElementById('main-content');
-      if (!main) {
-        console.error('[Dean Dashboard] main-content not found');
-        return;
-      }
-
-      console.log('[Dean Dashboard] Mounting iframe...');
-      main.innerHTML = `
-        <div class="dean-dashboard-container" style="width:100%;height:100%;min-height:calc(100vh - 120px);">
-          <iframe 
-            id="dean-dashboard-iframe"
-            src="/qms.html" 
-            style="width:100%;height:100%;border:none;display:block;"
-            title="Dean Analytics Dashboard"
-            sandbox="allow-scripts allow-same-origin allow-forms"
-          ></iframe>
-        </div>
-      `;
-
-      const iframe = document.getElementById('dean-dashboard-iframe');
-      if (iframe) {
-        iframe.addEventListener('load', () => console.log('[Dean Dashboard] Iframe loaded'));
-        iframe.addEventListener('error', () => console.error('[Dean Dashboard] Iframe error'));
-      }
-    };
-
-    console.log('[Dean Dashboard Fix] Function defined');
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  // Override app.js's built-in mountDeanDashboard with our iframe version.
+  // This must happen AFTER app.js has loaded — the script order in index.html
+  // already guarantees that (app.js loads first, then this file).
+  window.mountDeanDashboard = mount;
 
-  console.log('[Dean Dashboard Fix] Loaded successfully');
+  console.log("[Dean Dashboard v26.0] Ready — mountDeanDashboard overridden");
 })();
