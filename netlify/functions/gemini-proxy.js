@@ -1,59 +1,73 @@
-// Server-side proxy for Gemini API calls.
-// The Gemini API key lives only in the Netlify environment variable GEMINI_API_KEY —
-// it is never sent to or stored in the browser. The client posts { model, body }
-// and this function forwards the request to Google with the key attached server-side.
+// Netlify Function — Gemini proxy
+// Reads GEMINI_API_KEY from the environment; never exposed to the browser.
+
+const ALLOWED_MODELS = [
+  "gemini-2.5-flash",
+  "gemini-2.5-pro",
+  "gemini-2.0-flash",
+  "gemini-2.0-flash-exp"
+];
+
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type"
+};
+
+const json = (statusCode, obj) => ({
+  statusCode,
+  headers: { ...CORS, "Content-Type": "application/json" },
+  body: JSON.stringify(obj)
+});
 
 exports.handler = async function (event) {
-  const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
-
   if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers: corsHeaders, body: "" };
+    return { statusCode: 204, headers: CORS, body: "" };
   }
-
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, headers: corsHeaders, body: JSON.stringify({ error: "Method not allowed" }) };
+    return json(405, { error: "Method not allowed" });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ error: "Gemini API key not configured on server" }) };
+    console.error("[gemini-proxy] GEMINI_API_KEY is not set");
+    return json(500, { error: "Gemini API key not configured on server" });
   }
 
   let payload;
   try {
     payload = JSON.parse(event.body || "{}");
-  } catch (e) {
-    return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: "Invalid JSON body" }) };
+  } catch {
+    return json(400, { error: "Invalid JSON body" });
   }
 
-  // Only allow a small allowlist of known-safe Gemini models to prevent abuse.
-  const allowedModels = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"];
-  const model = allowedModels.includes(payload.model) ? payload.model : "gemini-2.5-flash";
+  const model = ALLOWED_MODELS.includes(payload.model)
+    ? payload.model
+    : "gemini-2.5-flash";
 
   if (!payload.body || typeof payload.body !== "object") {
-    return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: "Missing request body" }) };
+    return json(400, { error: "Missing body (expected { model, body })" });
   }
 
   try {
-    const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload.body),
-      }
-    );
+    const url =
+      "https://generativelanguage.googleapis.com/v1beta/models/" +
+      model + ":generateContent?key=" + apiKey;
+
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload.body)
+    });
+
     const text = await resp.text();
     return {
       statusCode: resp.status,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: text,
+      headers: { ...CORS, "Content-Type": "application/json" },
+      body: text
     };
   } catch (err) {
-    return { statusCode: 502, headers: corsHeaders, body: JSON.stringify({ error: "Upstream request failed", detail: String(err) }) };
+    console.error("[gemini-proxy] upstream error:", err);
+    return json(502, { error: "Upstream request failed", detail: String(err) });
   }
 };
