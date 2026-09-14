@@ -1,18 +1,129 @@
+// QMS RISE — AI FAQ + Gemini fallback via Netlify proxy
 (function () {
   "use strict";
-  const MAX_QUESTION_LENGTH = 1000;
-  let faqPromise = null;
-  function fallback(message) { return { answer: message || "I could not find a reliable answer. Please contact QMS support.", source: "fallback", category: null }; }
-  function normalize(value) { return String(value || "").toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim(); }
-  function words(value) { return new Set(normalize(value).split(" ").filter((word) => word.length >= 4)); }
-  function scoreFAQ(question, faq) { const q = words(question), f = words(`${faq.question} ${faq.answer}`); if (!q.size || !f.size) return 0; let matches = 0; for (const word of q) if (f.has(word)) matches++; return matches / q.size; }
-  function findBestFAQ(question, faqs) { const ranked = faqs.map((faq) => ({ faq, score: scoreFAQ(question, faq) })).sort((a, b) => b.score - a.score); const best = ranked[0], second = ranked[1]; if (!best || best.score < 0.45 || (second && best.score - second.score < 0.1)) return null; return best; }
-  async function loadFAQs() { await window.QMS_READY; if (!window.supabaseClient) throw new Error("Supabase client unavailable"); const { data, error } = await window.supabaseClient.from("faqs").select("question, answer, category").order("created_at", { ascending: false }); if (error) throw error; return Array.isArray(data) ? data : []; }
-  function getFAQs() { if (!faqPromise) faqPromise = loadFAQs().catch((error) => { console.error("[FAQ] Failed to load FAQs:", error); return []; }); return faqPromise; }
-  async function callQMSAI(question) { const sessionResult = await window.supabaseClient.auth.getSession(); const token = sessionResult.data?.session?.access_token; const response = await fetch("/.netlify/functions/qms-ai", { method: "POST", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ question }) }); const data = await response.json().catch(() => ({})); if (!response.ok) return fallback("The AI assistant is temporarily unavailable."); return { answer: data.answer || "No answer was returned.", source: data.source || "AI", category: data.category || "AI Response" }; }
-  async function handleAIChat(userQuestion) { const question = String(userQuestion || "").trim(); if (!question) return fallback("Please enter a question."); if (question.length > MAX_QUESTION_LENGTH) return fallback(`Please shorten your question to ${MAX_QUESTION_LENGTH} characters or fewer.`); const match = findBestFAQ(question, await getFAQs()); if (match) return { answer: match.faq.answer, source: "FAQ", category: match.faq.category || null, matchedQuestion: match.faq.question, confidence: Number(match.score.toFixed(2)) }; try { return await callQMSAI(question); } catch (error) { console.error("[FAQ] AI request failed:", error); return fallback(); } }
-  window.loadFAQs = getFAQs;
-  window.handleAIChat = handleAIChat;
-  window.findBestFAQ = findBestFAQ;
-  window.QMS_READY.then(() => console.info("[FAQ] FAQ assistant ready")).catch((error) => console.error("[FAQ] Startup failed:", error));
+
+  console.log("[AI FAQ v26] Starting…");
+
+  const $ = (id) => document.getElementById(id);
+  const PROXY = "/.netlify/functions/gemini-proxy";
+  const MODEL = "gemini-2.5-flash";
+
+  // ---- Wait for Supabase client (max 10 s) ---------------------------
+  function waitForSupabase() {
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+      const t = setInterval(() => {
+        if (window.supabaseClient) { clearInterval(t); resolve(); }
+        else if (Date.now() - start > 10000) { clearInterval(t); reject(new Error("Supabase not ready")); }
+      }, 100);
+    });
+  }
+
+  // ---- Load FAQs ------------------------------------------------------
+  async function loadFAQs() {
+    try {
+      const { data, error } = await window.supabaseClient
+        .from("faqs")
+        .select("question, answer, category")
+        .order("created_at", { ascending: false });
+      if (error) { console.warn("[AI FAQ] FAQ load:", error.message); return []; }
+      console.log("[AI FAQ] Loaded", (data || []).length, "FAQs");
+      return data || [];
+    } catch (e) {
+      console.warn("[AI FAQ] FAQ fetch failed:", e.message);
+      return [];
+    }
+  }
+
+  // ---- FAQ matching ---------------------------------------------------
+  function findBestFAQ(question, faqs) {
+    if (!faqs || !faqs.length) return null;
+    const q = String(question || "").toLowerCase().trim();
+
+    // exact
+    for (const f of faqs) {
+      const fq = String(f.question || "").toLowerCase();
+      if (fq.includes(q) || q.includes(fq)) return { match: f, score: 1.0, type: "exact" };
+    }
+    // keyword
+    const kws = q.split(/\s+/).filter(w => w.length > 3);
+    for (const f of faqs) {
+      const hay = (f.question + " " + f.answer).toLowerCase();
+      const hits = kws.filter(kw => hay.includes(kw)).length;
+      if (hits >= 2) return { match: f, score: 0.8, type: "keyword" };
+    }
+    return null;
+  }
+
+  // ---- Gemini via Netlify proxy --------------------------------------
+  async function callGemini(question) {
+    const r = await fetch(PROXY, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: MODEL,
+        body: {
+          contents: [{
+            parts: [{
+              text:
+                "You are a helpful assistant for UNIMY QMS RISE. " +
+                "Answer concisely and accurately: " + question
+            }]
+          }]
+        }
+      })
+    });
+
+    if (!r.ok) {
+      const errText = await r.text().catch(() => "");
+      throw new Error("Proxy " + r.status + ": " + errText.slice(0, 120));
+    }
+
+    const data = await r.json();
+    const text = data &&
+                 data.candidates &&
+                 data.candidates[0] &&
+                 data.candidates[0].content &&
+                 data.candidates[0].content.parts &&
+                 data.candidates[0].content.parts[0] &&
+                 data.candidates[0].content.parts[0].text;
+
+    if (!text) throw new Error("Empty Gemini response");
+    return text;
+  }
+
+  // ---- Main handler ---------------------------------------------------
+  async function handleAIChat(question) {
+    const faqs = await loadFAQs();
+    const hit  = findBestFAQ(question, faqs);
+
+    if (hit && hit.score >= 0.6) {
+      return {
+        answer: hit.match.answer,
+        source: "FAQ (" + hit.type + ")",
+        category: hit.match.category || null
+      };
+    }
+
+    try {
+      const aiAnswer = await callGemini(question);
+      return { answer: aiAnswer, source: "AI (Gemini)" };
+    } catch (err) {
+      console.error("[AI FAQ] Gemini failed:", err);
+      return {
+        answer: "I couldn't find this in the FAQ, and the AI service is unavailable right now. Please contact your lecturer or HOP.",
+        source: "fallback"
+      };
+    }
+  }
+
+  // ---- Boot -----------------------------------------------------------
+  waitForSupabase()
+    .then(() => {
+      window.handleAIChat = handleAIChat;
+      window.loadFAQs     = loadFAQs;
+      window.callGemini   = callGemini;
+      console.log("[AI FAQ v26] Ready");
+    })
+    .catch(err => console.warn("[AI FAQ] Init failed:", err.message));
 })();
