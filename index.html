@@ -2,55 +2,48 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#05080f" />
+    <meta name="description" content="UNIMY QMS RISE - Quality Management System" />
     <title>UNIMY QMS RISE v26.0</title>
     <link rel="stylesheet" href="./styles.css">
     <link rel="stylesheet" href="./mobile-responsive-fix.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js" crossorigin="anonymous"></script>
     <style>
-        #splash-screen{position:fixed;inset:0;background:#05080f;z-index:9999;
-            display:flex;align-items:center;justify-content:center;overflow:hidden;}
+        #splash-screen{position:fixed;inset:0;background:#05080f;z-index:9999;display:flex;align-items:center;justify-content:center;overflow:hidden;}
         #splash-screen.fade-out{opacity:0;transition:opacity 1.4s;pointer-events:none;}
         #splash-bg{position:absolute;inset:0;pointer-events:none;}
-        #splash-bg .star{position:absolute;background:#fff;border-radius:50%;
-            animation:twinkle var(--dur,3s) infinite;}
+        #splash-bg .star{position:absolute;background:#fff;border-radius:50%;animation:twinkle var(--dur,3s) infinite;}
         @keyframes twinkle{0%,100%{opacity:.2;}50%{opacity:.9;}}
-        #splash-video{position:absolute;inset:0;width:100%;height:100%;
-            object-fit:cover;opacity:.3;}
-        #splash-content{position:relative;z-index:2;text-align:center;color:#fff;
-            font-family:system-ui,sans-serif;}
-        #splash-progress{width:280px;height:6px;background:rgba(255,255,255,.1);
-            border-radius:3px;margin:16px auto;overflow:hidden;}
-        #splash-progress-bar{height:100%;width:0;
-            background:linear-gradient(90deg,#00f5ff,#7c3aed);transition:width .15s linear;}
-        #splash-skip-btn{background:transparent;border:1px solid rgba(255,255,255,.25);
-            color:#fff;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:14px;}
-        #splash-unmute-btn{position:absolute;bottom:24px;right:24px;z-index:3;
-            background:rgba(0,0,0,.6);color:#fff;border:1px solid #444;
-            padding:8px 16px;border-radius:6px;cursor:pointer;}
-        #credits-screen{position:fixed;inset:0;background:#05080f;color:#fff;
-            display:none;align-items:center;justify-content:center;z-index:9998;}
+        #splash-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.3;}
+        #splash-content{position:relative;z-index:2;text-align:center;color:#fff;font-family:system-ui,-apple-system,sans-serif;}
+        #splash-progress{width:280px;height:6px;background:rgba(255,255,255,.1);border-radius:3px;margin:16px auto;overflow:hidden;}
+        #splash-progress-bar{height:100%;width:0;background:linear-gradient(90deg,#00f5ff,#7c3aed);transition:width .15s linear;}
+        #splash-skip-btn{background:transparent;border:1px solid rgba(255,255,255,.25);color:#fff;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:14px;transition:all .2s;}
+        #splash-skip-btn:hover{background:rgba(255,255,255,.1);}
+        #splash-unmute-btn{position:absolute;bottom:24px;right:24px;z-index:3;background:rgba(0,0,0,.6);color:#fff;border:1px solid #444;padding:8px 16px;border-radius:6px;cursor:pointer;transition:all .2s;}
+        #splash-unmute-btn:hover{background:rgba(50,50,50,.8);}
+        #credits-screen{position:fixed;inset:0;background:#05080f;color:#fff;display:none;align-items:center;justify-content:center;z-index:9998;}
         #credits-screen.visible{display:flex !important;}
         #credits-screen.fade-out{opacity:0;transition:opacity .9s;pointer-events:none;}
-        #credits-continue-btn{background:#00f5ff;color:#000;border:0;
-            padding:10px 24px;border-radius:6px;cursor:pointer;margin-top:16px;font-weight:700;}
+        #credits-continue-btn{background:#00f5ff;color:#000;border:0;padding:10px 24px;border-radius:6px;cursor:pointer;margin-top:16px;font-weight:700;transition:all .2s;}
+        #credits-continue-btn:hover{background:#7c3aed;color:#fff;}
         #neural-canvas{position:fixed;inset:0;z-index:-1;pointer-events:none;}
-        #ai-fab-root{position:fixed;z-index:100;}
+        #ai-fab-root{position:fixed;bottom:24px;right:24px;z-index:100;}
         #app{opacity:0;transition:opacity .8s;}
+        .error-boundary{position:fixed;inset:0;background:#05080f;color:#fff;display:none;align-items:center;justify-content:center;z-index:10000;padding:24px;text-align:center;}
+        .error-boundary.visible{display:flex;}
     </style>
 </head>
 <body>
-
-    <!-- Splash (app.js requires all of these) -->
     <div id="splash-screen">
         <canvas id="neural-canvas"></canvas>
         <div id="splash-bg"></div>
-        <video id="splash-video" muted playsinline preload="auto"
-               src="./rise-qms-logo2.mp4"></video>
+        <video id="splash-video" muted playsinline preload="auto" src="./rise-qms-logo2.mp4" poster="./rise-qms.png"></video>
         <button id="splash-unmute-btn" style="display:none;">🔊 Unmute</button>
         <div id="splash-content">
-            <img src="./rise-qms.png" alt="QMS RISE" style="max-width:180px;">
+            <img src="./rise-qms.png" alt="QMS RISE Logo" style="max-width:180px;" loading="eager">
             <h1 style="font-size:24px;margin:12px 0 4px;">UNIMY QMS RISE</h1>
             <p style="opacity:.7;margin:0 0 8px;">v26.0</p>
             <div id="splash-progress"><div id="splash-progress-bar"></div></div>
@@ -58,28 +51,48 @@
         </div>
     </div>
 
-    <!-- Credits (app.js requires) -->
     <div id="credits-screen">
         <div style="text-align:center;">
             <h2>Created by</h2>
             <p style="font-size:20px;margin:8px 0;">R. Vinod Sarna</p>
-            <img src="./created-by-vinod-sarna.jpg" alt="Creator"
-                 style="max-width:160px;border-radius:50%;margin:16px auto;display:block;">
+            <img src="./created-by-vinod-sarna.jpg" alt="Creator" style="max-width:160px;border-radius:50%;margin:16px auto;display:block;" loading="lazy">
             <button id="credits-continue-btn">Continue →</button>
         </div>
     </div>
 
-    <!-- App shell + global containers -->
+    <div id="error-boundary" class="error-boundary">
+        <div>
+            <h2 style="font-size:28px;margin:0 0 16px;">⚠️ Application Error</h2>
+            <p id="error-message" style="opacity:.8;margin:0 0 24px;max-width:600px;">An unexpected error occurred. Please refresh the page or contact support.</p>
+            <button onclick="window.location.reload()" style="background:#00f5ff;color:#000;border:0;padding:12px 32px;border-radius:6px;cursor:pointer;font-weight:700;font-size:16px;">🔄 Refresh Page</button>
+        </div>
+    </div>
+
     <div id="app"></div>
     <div id="ai-fab-root"></div>
     <div id="toast-container"></div>
     <div id="modal-root"></div>
 
-    <!-- Scripts — order matters -->
     <script src="./config.js"></script>
     <script src="./app.js"></script>
     <script src="./dean-dashboard-fix.js"></script>
     <script src="./dean-sidebar-fix.js"></script>
     <script src="./ai-faq.js"></script>
+    <script src="./navbar-cleanup.js"></script>
+    
+    <script>
+        window.addEventListener("error", function(e) {
+            console.error("[QMS] Global error:", e.error);
+            const boundary = document.getElementById("error-boundary");
+            const msg = document.getElementById("error-message");
+            if (boundary && msg) {
+                msg.textContent = e.error ? e.error.message : "Unknown error";
+                boundary.classList.add("visible");
+            }
+        });
+        window.addEventListener("unhandledrejection", function(e) {
+            console.error("[QMS] Unhandled promise rejection:", e.reason);
+        });
+    </script>
 </body>
 </html>
