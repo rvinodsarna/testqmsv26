@@ -4,10 +4,16 @@
     "anonKey": "sb_publishable_9zdzXXnJP5Z5eGD70jvJ8g_Kwxp-k50"
   },
   "gemini": {
-    "model": "gemini-2.5-flash"
+    "model": "gemini-2.5-flash",
+    "apiKey": ""
   },
   "app": {
     "version": "26.0",
     "name": "UNIMY QMS RISE"
+  },
+  "security": {
+    "enableCSP": true,
+    "enableCors": true,
+    "allowedOrigins": ["https://unimy-qms-rise-v26.netlify.app"]
   }
 }
