@@ -1,53 +1,88 @@
-// ════════════════════════════════════════════════════════════
-// NAVBAR CLEANUP — Removes SoCDT and unwanted nav items
-// Runs AFTER app.js to clean up dynamically generated content
-// ════════════════════════════════════════════════════════════
+// QMS RISE v26.0 — Secure Navbar Cleanup
+(function() {
+  "use strict";
 
-function cleanNavbar() {
-  setTimeout(() => {
-    const navbar = document.getElementById('navbar');
+  const CLEANUP_CONFIG = {
+    DELAY_MS: 1500,
+    MAX_RETRIES: 3,
+    RETRY_INTERVAL_MS: 500,
+    ALLOWED_NAV_ITEMS: ["security", "live feed", "profile", "messages", "logout"],
+    REMOVED_PATTERNS: ["socdt", "school of computing", "dashboard", "analytics", "documents"]
+  };
+
+  function sanitizeText(text) {
+    return (text || "").toLowerCase().trim().replace(/[^a-z0-9\s]/g, "");
+  }
+
+  function shouldRemove(text) {
+    const sanitized = sanitizeText(text);
+    return CLEANUP_CONFIG.REMOVED_PATTERNS.some(pattern => 
+      sanitized.includes(pattern) && !CLEANUP_CONFIG.ALLOWED_NAV_ITEMS.some(allowed => 
+        sanitized.includes(allowed)
+      )
+    );
+  }
+
+  function cleanNavbar() {
+    console.log("[NavbarCleanup] 🧹 Starting navbar cleanup...");
+
+    const navbar = document.getElementById("navbar");
     if (!navbar) {
-      console.log('⚠️ No navbar found');
+      console.warn("[NavbarCleanup] ⚠️ No navbar found, will retry...");
+      return false;
+    }
+
+    let removedCount = 0;
+
+    navbar.querySelectorAll(".so-csi-badge, .hero-eyebrow, .badge-text, .dean-eyebrow, .hero, .page-header").forEach(element => {
+      const text = element.textContent || "";
+      if (shouldRemove(text)) {
+        console.log("[NavbarCleanup] ✅ Removed:", text.substring(0, 40).trim());
+        element.remove();
+        removedCount++;
+      }
+    });
+
+    navbar.querySelectorAll(".nav-item, .nav-link, a[href]").forEach(item => {
+      const text = item.textContent || "";
+      const href = item.getAttribute("href") || "";
+      
+      const isAllowed = CLEANUP_CONFIG.ALLOWED_NAV_ITEMS.some(allowed => 
+        sanitizeText(text).includes(allowed) || href.includes(allowed)
+      );
+
+      if (!isAllowed && shouldRemove(text)) {
+        console.log("[NavbarCleanup] ✅ Removed nav item:", text.trim());
+        item.remove();
+        removedCount++;
+      }
+    });
+
+    console.log("[NavbarCleanup] ✅ Cleanup complete! Removed", removedCount, "elements");
+    return true;
+  }
+
+  function cleanupWithRetry(retries = 0) {
+    if (retries >= CLEANUP_CONFIG.MAX_RETRIES) {
+      console.error("[NavbarCleanup] ❌ Max retries reached, giving up");
       return;
     }
 
-    console.log('🧹 Cleaning navbar...');
+    const success = cleanNavbar();
+    
+    if (!success) {
+      console.log("[NavbarCleanup] ⏳ Retry", retries + 1, "in", CLEANUP_CONFIG.RETRY_INTERVAL_MS, "ms");
+      setTimeout(() => cleanupWithRetry(retries + 1), CLEANUP_CONFIG.RETRY_INTERVAL_MS);
+    }
+  }
 
-    // Remove SoCDT badges and hero eyebrows
-    navbar.querySelectorAll('.so-csi-badge, .hero-eyebrow, .badge-text, .dean-eyebrow').forEach(badge => {
-      const text = badge.textContent || '';
-      if (text.includes('SoCDT') || text.includes('School of Computing') || text.includes('Dashboard')) {
-        console.log('✅ Removed:', text.substring(0, 40));
-        badge.remove();
-      }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      setTimeout(() => cleanupWithRetry(), CLEANUP_CONFIG.DELAY_MS);
     });
+  } else {
+    setTimeout(() => cleanupWithRetry(), CLEANUP_CONFIG.DELAY_MS);
+  }
 
-    // Remove unwanted nav items
-    navbar.querySelectorAll('.nav-item').forEach(item => {
-      const text = item.textContent.toLowerCase();
-      if (text.includes('dashboard') || text.includes('analytics') || text.includes('documents')) {
-        console.log('✅ Removed nav item:', text.trim());
-        item.remove();
-      }
-    });
-
-    // Remove hero sections with unwanted text
-    navbar.querySelectorAll('.hero, .page-header').forEach(hero => {
-      const text = hero.textContent || '';
-      if (text.includes('Dean Dashboard') || text.includes('SoCDT')) {
-        console.log('✅ Removed hero');
-        hero.remove();
-      }
-    });
-
-    console.log('✅ Navbar cleanup complete!');
-  }, 1500);
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', cleanNavbar);
-} else {
-  cleanNavbar();
-}
-
-console.log('🚀 Navbar cleanup script loaded');
+  console.log("[NavbarCleanup] 🚦 Navbar cleanup script loaded");
+})();
