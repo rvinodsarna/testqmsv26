@@ -1,4 +1,0 @@
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-browser-publishable-key
-SUPABASE_SERVICE_ROLE_KEY=server-only-never-ship-to-browser
-GEMINI_API_KEY=server-only-never-ship-to-browser
