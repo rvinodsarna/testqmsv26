@@ -1,51 +1,35 @@
-// dean-dashboard-fix.js — v26.0
-// Renders the Dean Analytics page inside the main content frame.
-// app.js already routes "dean-dashboard" to mountDeanDashboard(),
-// so we just override that function with our iframe version.
-
+/*
+ * Dean dashboard routing fix.
+ * The official Dean dashboard is qms-no-login.html.
+ * It opens in the application's main frame when available.
+ */
 (function () {
-  "use strict";
+  'use strict';
 
-  // Change this to whichever page you want the Dean Analytics tab to load.
-  //   "./qms.html"                              → Dean Command Center
-  //   "./deepseek_html_20260903_2bc3d2.html"    → Deepseek dashboard
-  const DEAN_PAGE_URL = "./qms.html";
+  const DEAN_PAGE_URL = './qms-no-login.html';
 
-  console.log("[Dean Dashboard v26.0] Loading…");
-
-  function mount() {
-    const main = document.getElementById("main-content");
-    if (!main) {
-      console.error("[Dean Dashboard] #main-content not found");
-      return;
+  function openDeanDashboard() {
+    const frame = document.querySelector('#main-frame, #main-content iframe, iframe[data-main-frame]');
+    if (frame) {
+      frame.src = DEAN_PAGE_URL;
+      frame.removeAttribute('hidden');
+      return frame;
     }
 
-    console.log("[Dean Dashboard] Rendering iframe →", DEAN_PAGE_URL);
-
-    main.innerHTML = `
-      <div class="dean-dashboard-container"
-           style="width:100%;min-height:calc(100vh - 120px);background:#05080f;">
-        <iframe
-          id="dean-dashboard-iframe"
-          src="${DEAN_PAGE_URL}"
-          title="Dean Analytics Dashboard"
-          style="width:100%;height:calc(100vh - 120px);border:none;display:block;"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups"
-        ></iframe>
-      </div>
-    `;
-
-    const iframe = document.getElementById("dean-dashboard-iframe");
-    if (iframe) {
-      iframe.addEventListener("load", () => console.log("[Dean Dashboard] iframe loaded"));
-      iframe.addEventListener("error", () => console.error("[Dean Dashboard] iframe failed"));
+    const main = document.querySelector('#main-content, #main-frame, main');
+    if (main) {
+      main.innerHTML = '<iframe title="Dean Dashboard" src="' + DEAN_PAGE_URL + '" style="width:100%;min-height:calc(100vh - 120px);border:0;display:block" loading="eager"></iframe>';
+      return main.querySelector('iframe');
     }
+
+    window.location.href = DEAN_PAGE_URL;
+    return null;
   }
 
-  // Override app.js's built-in mountDeanDashboard with our iframe version.
-  // This must happen AFTER app.js has loaded — the script order in index.html
-  // already guarantees that (app.js loads first, then this file).
-  window.mountDeanDashboard = mount;
+  window.QMS_DEAN_PAGE_URL = DEAN_PAGE_URL;
+  window.openDeanDashboard = openDeanDashboard;
 
-  console.log("[Dean Dashboard v26.0] Ready — mountDeanDashboard overridden");
+  if (typeof window.mountDeanDashboard === 'function') {
+    window.mountDeanDashboard = openDeanDashboard;
+  }
 })();
