@@ -9,36 +9,13 @@
     <link rel="stylesheet" href="./mobile-responsive-fix.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js" crossorigin="anonymous"></script>
-    <script>
-      window.__showPasswordPanel = window.__showPasswordPanel || function () {
-        var selectors = ['#password-panel', '#passwordLoginPanel', '#login-panel', '#login'];
-        for (var i = 0; i < selectors.length; i += 1) {
-          var panel = document.querySelector(selectors[i]);
-          if (panel) {
-            panel.hidden = false;
-            panel.style.display = '';
-            panel.removeAttribute('aria-hidden');
-            return panel;
-          }
-        }
-        return null;
-      };
-    </script>
+    <style>
+        #splash-screen{position:fixed;inset:0;background:#05080f;z-index:9999;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+    </style>
 </head>
 <body>
-    <div id="splash-screen" aria-live="polite">
-        <div class="splash-content">
-            <div class="splash-logo">QMS RISE</div>
-            <div class="splash-loading">Loading…</div>
-        </div>
-    </div>
-    <div id="error-boundary" class="error-boundary" hidden>
-        <div>
-            <h2>⚠️ Application Error</h2>
-            <p id="error-message">An unexpected error occurred. Please refresh the page or contact support.</p>
-            <button type="button" onclick="window.location.reload()">🔄 Refresh Page</button>
-        </div>
-    </div>
+    <div id="splash-screen" aria-live="polite"><div class="splash-content"><div class="splash-logo">QMS RISE</div><div class="splash-loading">Loading…</div></div></div>
+    <div id="error-boundary" class="error-boundary"><div><h2 style="font-size:28px;margin:0 0 16px;">⚠️ Application Error</h2><p id="error-message" style="opacity:.8;margin:0 0 24px;max-width:600px;">An unexpected error occurred. Please refresh the page or contact support.</p><button onclick="window.location.reload()" style="background:#00f5ff;color:#000;border:0;padding:12px 32px;border-radius:6px;cursor:pointer;font-weight:700;font-size:16px;">🔄 Refresh Page</button></div></div>
     <main id="app"></main>
     <div id="modal-root"></div>
     <script src="./config.js"></script>
