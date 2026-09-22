@@ -1,116 +1,76 @@
-// dean-dashboard-fix.js
-// Dean dashboard CSS fixes and event button updates
-
-// Add to your HTML before </body> tag:
-// <script src="dean-dashboard-fix.js"></script>
-
+// QMS RISE v26.0 — Dean Sidebar Fix (Enhanced)
 (function() {
-    // Wait for DOM to be ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+  "use strict";
+
+  const DEAN_SIDEBAR_CONFIG = {
+    ITEM_LABEL: "Dean Analytics",
+    ITEM_ICON: "📈",
+    TARGET_URL: "/qms-no-login.html"
+  };
+
+  function init() {
+    console.log('[Dean Sidebar] Initializing...');
+
+    // Wait for sidebar to render
+    waitForSidebar();
+  }
+
+  function waitForSidebar(retries = 0) {
+    if (retries >= DEAN_SIDEBAR_CONFIG.MAX_RETRIES) {
+      console.warn('[Dean Sidebar] Sidebar not found');
+      return;
+    }
+
+    const sidebar = document.querySelector('.sidebar') || 
+                    document.querySelector('nav') ||
+                    document.querySelector('[class*="sidebar"]');
+
+    if (sidebar) {
+      updateSidebarMenu(sidebar);
     } else {
-        init();
+      setTimeout(() => waitForSidebar(retries + 1), 500);
     }
+  }
 
-    function init() {
-        console.log('Dean dashboard fix initialized');
-        
-        // Apply CSS fixes
-        applyCSSFixes();
-        
-        // Update event buttons
-        updateEventButtons();
-    }
+  function updateSidebarMenu(sidebar) {
+    console.log('[Dean Sidebar] Updating menu...');
 
-    function applyCSSFixes() {
-        const style = document.createElement('style');
-        style.textContent = `
-            /* Dean Dashboard CSS Fixes */
-            .dashboard-container {
-                max-width: 100%;
-                overflow-x: hidden;
-            }
-            
-            .stats-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 1rem;
-                padding: 1rem;
-            }
-            
-            .stat-card {
-                background: white;
-                border-radius: 8px;
-                padding: 1.5rem;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            
-            .event-actions {
-                display: flex;
-                gap: 0.5rem;
-                flex-wrap: wrap;
-            }
-            
-            .btn-approve, .btn-reject {
-                padding: 0.5rem 1rem;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                font-weight: 500;
-            }
-            
-            .btn-approve {
-                background: #10b981;
-                color: white;
-            }
-            
-            .btn-reject {
-                background: #ef4444;
-                color: white;
-            }
-            
-            .btn-approve:hover {
-                background: #059669;
-            }
-            
-            .btn-reject:hover {
-                background: #dc2626;
-            }
-        `;
-        document.head.appendChild(style);
-    }
+    // Find or create Dean menu item
+    let deanItem = sidebar.querySelector('[href*="qms-no-login"], [href*="dean"]');
 
-    function updateEventButtons() {
-        // Find event approval buttons and update them
-        const eventRows = document.querySelectorAll('.event-row');
-        
-        eventRows.forEach(row => {
-            const approveBtn = row.querySelector('.btn-approve');
-            const rejectBtn = row.querySelector('.btn-reject');
-            
-            if (approveBtn) {
-                approveBtn.textContent = '✓ Approve';
-                approveBtn.addEventListener('click', () => handleApprove(row));
-            }
-            
-            if (rejectBtn) {
-                rejectBtn.textContent = '✗ Reject';
-                rejectBtn.addEventListener('click', () => handleReject(row));
-            }
-        });
-    }
+    if (!deanItem) {
+      // Create new menu item
+      deanItem = document.createElement('a');
+      deanItem.href = DEAN_SIDEBAR_CONFIG.TARGET_URL;
+      deanItem.className = 'menu-item';
+      deanItem.innerHTML = `
+        <span class="menu-icon">${DEAN_SIDEBAR_CONFIG.ITEM_ICON}</span>
+        <span class="menu-label">${DEAN_SIDEBAR_CONFIG.ITEM_LABEL}</span>
+      `;
 
-    function handleApprove(row) {
-        const eventId = row.dataset.eventId;
-        console.log('Approving event:', eventId);
-        // Add your approval logic here
-        row.style.background = '#d1fae5';
-    }
+      // Insert at top of menu
+      const menu = sidebar.querySelector('.menu') || sidebar;
+      const firstItem = menu.querySelector('.menu-item');
+      if (firstItem) {
+        menu.insertBefore(deanItem, firstItem);
+      } else {
+        menu.appendChild(deanItem);
+      }
 
-    function handleReject(row) {
-        const eventId = row.dataset.eventId;
-        console.log('Rejecting event:', eventId);
-        // Add your rejection logic here
-        row.style.background = '#fee2e2';
+      console.log('[Dean Sidebar] Menu item created');
+    } else {
+      // Update existing item
+      deanItem.href = DEAN_SIDEBAR_CONFIG.TARGET_URL;
+      console.log('[Dean Sidebar] Menu item updated');
     }
+  }
+
+  // Initialize
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  console.log('[Dean Sidebar] Fix loaded');
 })();
