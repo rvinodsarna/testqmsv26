@@ -1,36 +1,116 @@
-function togglePasswordVisibility(t,e){const n=document.getElementById(t);if(!n)return;const o="text"===n.type;n.type=o?"password":"text",e&&(e.textContent=o?"👁️":"🙈",e.setAttribute("aria-label",o?"Show password":"Hide password"))}!function(){function t(){document.querySelectorAll(".sidebar,.main-content,.modal-box,.fal-content-shell,.fal-sidebar,.fal-featured-list,.fal-workshop,.fal-stage-content,.fal-tool-panel,.fal-info-panel,.pchat-roster,.pchat-thread-body").forEach(function(t){if(t.__fingerScrollBound)return;t.__fingerScrollBound=!0;const e=t.classList.contains("sidebar")||t.classList.contains("main-content")||t.classList.contains("modal-box")||t.classList.contains("fal-content-shell")||t.classList.contains("fal-sidebar")||t.classList.contains("fal-featured-list")||t.classList.contains("fal-tool-panel")||t.classList.contains("fal-info-panel")||t.classList.contains("pchat-roster")||t.classList.contains("pchat-thread-body");let n=!1,o=!1,a=null,s=0,l=0,i=0,r=0;function c(){if(o&&null!=a)try{t.releasePointerCapture(a)}catch(t){}n=!1,o=!1,a=null,t.style.cursor="grab"}t.addEventListener("pointerdown",function(e){"touch"!==e.pointerType&&("mouse"===e.pointerType&&0!==e.button||e.target.closest('button,a,input,textarea,select,[contenteditable="true"]')||(n=!0,o=!1,a=e.pointerId,s=e.clientX,l=e.clientY,i=t.scrollLeft,r=t.scrollTop))}),t.addEventListener("pointermove",function(c){if(!n||c.pointerId!==a)return;const d=c.clientX-s,u=c.clientY-l;if(!o&&Math.hypot(d,u)>6){o=!0,t.style.cursor="grabbing";try{t.setPointerCapture(a)}catch(t){}}o&&(c.preventDefault(),t.scrollTop=r-u,e||(t.scrollLeft=i-d))}),t.addEventListener("pointerup",c),t.addEventListener("pointercancel",c),t.addEventListener("pointerleave",function(){o||(n=!1)})})}"loading"===document.readyState?document.addEventListener("DOMContentLoaded",t):t(),setInterval(t,1500)}();
-window.__playLogoutVideoOverlay = function () {
-const overlay = document.getElementById('logout-video-overlay');
-const video = document.getElementById('logout-video');
-const skipBtn = document.getElementById('logout-video-skip-btn');
-if (!overlay || !video) return;
+// dean-dashboard-fix.js
+// Dean dashboard CSS fixes and event button updates
 
-let closed = false;
-function closeOverlay() {
-if (closed) return;
-closed = true;
-overlay.classList.add('fade-out');
-setTimeout(() => {
-overlay.classList.remove('visible', 'fade-out');
-video.pause();
-video.currentTime = 0;
-}, 500);
-video.removeEventListener('ended', closeOverlay);
-if (skipBtn) skipBtn.removeEventListener('click', closeOverlay);
+// Add to your HTML before </body> tag:
+// <script src="dean-dashboard-fix.js"></script>
 
-video.currentTime = 0;
-video.muted = false;
-overlay.classList.add('visible');
-video.addEventListener('ended', closeOverlay, { once: true });
-if (skipBtn) skipBtn.addEventListener('click', closeOverlay, { once: true });
+(function() {
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 
-const playPromise = video.play();
-if (playPromise && typeof playPromise.catch === 'function') {
-playPromise.catch(() => {
-video.muted = true;
-video.play().catch(() => {});
-});
+    function init() {
+        console.log('Dean dashboard fix initialized');
+        
+        // Apply CSS fixes
+        applyCSSFixes();
+        
+        // Update event buttons
+        updateEventButtons();
+    }
 
-// Safety timeout in case 'ended' never fires (e.g. video fails to load)
-setTimeout(closeOverlay, 20000);
-};
+    function applyCSSFixes() {
+        const style = document.createElement('style');
+        style.textContent = `
+            /* Dean Dashboard CSS Fixes */
+            .dashboard-container {
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+            
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .stat-card {
+                background: white;
+                border-radius: 8px;
+                padding: 1.5rem;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            
+            .event-actions {
+                display: flex;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }
+            
+            .btn-approve, .btn-reject {
+                padding: 0.5rem 1rem;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: 500;
+            }
+            
+            .btn-approve {
+                background: #10b981;
+                color: white;
+            }
+            
+            .btn-reject {
+                background: #ef4444;
+                color: white;
+            }
+            
+            .btn-approve:hover {
+                background: #059669;
+            }
+            
+            .btn-reject:hover {
+                background: #dc2626;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function updateEventButtons() {
+        // Find event approval buttons and update them
+        const eventRows = document.querySelectorAll('.event-row');
+        
+        eventRows.forEach(row => {
+            const approveBtn = row.querySelector('.btn-approve');
+            const rejectBtn = row.querySelector('.btn-reject');
+            
+            if (approveBtn) {
+                approveBtn.textContent = '✓ Approve';
+                approveBtn.addEventListener('click', () => handleApprove(row));
+            }
+            
+            if (rejectBtn) {
+                rejectBtn.textContent = '✗ Reject';
+                rejectBtn.addEventListener('click', () => handleReject(row));
+            }
+        });
+    }
+
+    function handleApprove(row) {
+        const eventId = row.dataset.eventId;
+        console.log('Approving event:', eventId);
+        // Add your approval logic here
+        row.style.background = '#d1fae5';
+    }
+
+    function handleReject(row) {
+        const eventId = row.dataset.eventId;
+        console.log('Rejecting event:', eventId);
+        // Add your rejection logic here
+        row.style.background = '#fee2e2';
+    }
+})();
