@@ -7,38 +7,66 @@
     <title>UNIMY QMS RISE v26.0</title>
     <link rel="stylesheet" href="./styles.css">
     <link rel="stylesheet" href="./mobile-responsive-fix.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js" crossorigin="anonymous"></script>
     <style>
-        #splash-screen{position:fixed;inset:0;background:#05080f;z-index:9999;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+        /* Ensure all interactive elements are visible and clickable */
+        .btn, button, a, input, select, textarea {
+            min-height: 44px;
+            min-width: 44px;
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #00f5ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Button hover effects */
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 245, 255, 0.3);
+        }
+        
+        /* Card hover effects */
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 245, 255, 0.2);
+        }
     </style>
-    <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your App</title>
-    
-    <!-- Add these CSS links -->
-    <link rel="stylesheet" href="styles-part1.css">
-    <link rel="stylesheet" href="styles-part2.css">
-    <link rel="stylesheet" href="styles-part3.css">
-    <link rel="stylesheet" href="styles-part4.css">
-    <link rel="stylesheet" href="styles-part5.css">
-</head>
-
 </head>
 <body>
-    <div id="splash-screen" aria-live="polite"><div class="splash-content"><div class="splash-logo">QMS RISE</div><div class="splash-loading">Loading…</div></div></div>
-    <div id="error-boundary" class="error-boundary"><div><h2 style="font-size:28px;margin:0 0 16px;">⚠️ Application Error</h2><p id="error-message" style="opacity:.8;margin:0 0 24px;max-width:600px;">An unexpected error occurred. Please refresh the page or contact support.</p><button onclick="window.location.reload()" style="background:#00f5ff;color:#000;border:0;padding:12px 32px;border-radius:6px;cursor:pointer;font-weight:700;font-size:16px;">🔄 Refresh Page</button></div></div>
-    <main id="app"></main>
+    <div id="app-root"></div>
     <div id="modal-root"></div>
+    
+    <!-- Scripts in correct order -->
     <script src="./config.js"></script>
     <script src="./app.js"></script>
     <script src="./app-extra.js"></script>
     <script src="./face-auth.js"></script>
     <script src="./dean-dashboard-fix.js"></script>
     <script src="./dean-sidebar-fix.js"></script>
-</body>
-</html>
-
+    <script src="./logout-video-overlay.js"></script>
 </body>
 </html>
